@@ -1,0 +1,109 @@
+<?php
+$db = new PDO('mysql:host=localhost;dbname=dasda', 'root', '');
+
+// Ambil data wilayah
+$wilayah_data = $db->query("SELECT id, kode_cabang, nama_provinsi FROM wilayah")->fetchAll(PDO::FETCH_ASSOC);
+
+// Ambil data kabupaten
+$kabupaten_data = $db->query("SELECT id, nama_kabupaten FROM kabupaten")->fetchAll(PDO::FETCH_ASSOC);
+
+// Ambil data kecamatan
+$kecamatan_data = $db->query("SELECT id, nama_kecamatan FROM kecamatan")->fetchAll(PDO::FETCH_ASSOC);
+
+$pesan = '';
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $nama = $_POST['nama'];
+    $id_wilayah = $_POST['id_wilayah'];
+    $id_kabupaten = $_POST['id_kabupaten'];
+    $id_kecamatan = $_POST['id_kecamatan'];
+    $status = $_POST['status'];
+    $keterangan = $_POST['keterangan'];
+    $NIA = $_POST['NIA'];
+
+    try {
+        $stmt = $db->prepare("INSERT INTO anggota (nama, id_wilayah, id_kabupaten, id_kecamatan, status, keterangan, NIA) VALUES (?, ?, ?, ?, ?, ?, ?)");
+        $stmt->execute([$nama, $id_wilayah, $id_kabupaten, $id_kecamatan, $status, $keterangan, $NIA]);
+        $pesan = "✅ Anggota berhasil ditambahkan!";
+    } catch (PDOException $e) {
+        $pesan = "❌ Terjadi kesalahan: " . $e->getMessage();
+    }
+}
+?>
+
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <title>Tambah Anggota</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center p-4">
+<div class="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
+    <h1 class="text-2xl font-bold text-center text-blue-600 mb-6">Tambah Anggota Baru</h1>
+
+    <?php if (!empty($pesan)) : ?>
+        <div class="mb-4 p-4 <?= strpos($pesan, '✅') === 0 ? 'bg-green-100 border-green-400 text-green-700' : 'bg-red-100 border-red-400 text-red-700' ?> border rounded">
+            <?= $pesan ?>
+        </div>
+    <?php endif; ?>
+
+    <form method="post" class="space-y-4">
+        <div>
+            <label class="block font-medium text-gray-700">Nama</label>
+            <input type="text" name="nama" required class="w-full mt-1 p-2 border border-gray-300 rounded">
+        </div>
+
+        <div>
+            <label class="block font-medium text-gray-700">Wilayah</label>
+            <select name="id_wilayah" required class="w-full mt-1 p-2 border border-gray-300 rounded">
+                <option value="">-- Pilih Wilayah --</option>
+                <?php foreach ($wilayah_data as $w): ?>
+                    <option value="<?= $w['id'] ?>"><?= htmlspecialchars($w['kode_cabang'] . ' - ' . $w['nama_provinsi']) ?></option>
+                <?php endforeach; ?>
+            </select>
+        </div>
+
+        <div>
+            <label class="block font-medium text-gray-700">Kabupaten</label>
+            <select name="id_kabupaten" required class="w-full mt-1 p-2 border border-gray-300 rounded">
+                <option value="">-- Pilih Kabupaten --</option>
+                <?php foreach ($kabupaten_data as $k): ?>
+                    <option value="<?= $k['id'] ?>"><?= htmlspecialchars($k['nama_kabupaten']) ?></option>
+                <?php endforeach; ?>
+            </select>
+        </div>
+
+        <div>
+            <label class="block font-medium text-gray-700">Kecamatan</label>
+            <select name="id_kecamatan" required class="w-full mt-1 p-2 border border-gray-300 rounded">
+                <option value="">-- Pilih Kecamatan --</option>
+                <?php foreach ($kecamatan_data as $c): ?>
+                    <option value="<?= $c['id'] ?>"><?= htmlspecialchars($c['nama_kecamatan']) ?></option>
+                <?php endforeach; ?>
+            </select>
+        </div>
+
+        <div>
+            <label class="block font-medium text-gray-700">Status</label>
+            <input type="text" name="status" class="w-full mt-1 p-2 border border-gray-300 rounded">
+        </div>
+
+        <div>
+            <label class="block font-medium text-gray-700">Keterangan</label>
+            <textarea name="keterangan" class="w-full mt-1 p-2 border border-gray-300 rounded"></textarea>
+        </div>
+
+        <div>
+            <label class="block font-medium text-gray-700">NIA</label>
+            <input type="text" name="NIA" required class="w-full mt-1 p-2 border border-gray-300 rounded">
+        </div>
+
+        <div>
+            <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded">
+                Tambah Anggota
+            </button>
+        </div>
+    </form>
+</div>
+</body>
+</html>
